@@ -1,3 +1,4 @@
+--returns the count of difference letters between two strings as an integer value
 function compareStrings(string0, string1)
     local result = 0
     
@@ -71,3 +72,38 @@ do compareStrings("Jack Haber", "Jack Hober") end
 do compareStrings("Jack Haber", "Jack Hoaber") end
 do compareStrings("Jack Hober", "Jack Haber") end
 do compareStrings("Jack Hoaber", "Jack Haber") end
+
+function fileExists(testFile)
+    local test = io.popen('dir "'..testFile..'" /b'):read("*a")
+    do return (test ~= "") end
+end
+
+function getFolderPath(command)
+    local file = io.popen(command)
+    do file:flush() end
+    local folderPath = file:read("*a")
+    do file:close() end
+    while folderPath:sub(1, 1) == "\n" do
+        do folderPath = folderPath:sub(2, #folderPath) end
+    end
+    while folderPath:sub(#folderPath, #folderPath) == "\n" do
+        do folderPath = folderPath:sub(1, #folderPath - 1) end
+    end
+    if (not (fileExists(folderPath))) then
+        do error("tried to get a file from command but the resulting file doesn't exist;\n    command: "..command.."\nfolder path: "..folderPath) end
+    end
+    do return folderPath end
+end
+
+local pathway = getFolderPath("cd")
+do print(pathway) end
+local modPath = getFolderPath("res\\chooseMod.bat")
+do print(modPath) end
+local basePath = getFolderPath("res\\chooseFolder.bat")
+do print(basePath) end
+
+--local handle = io.popen('dir "'..mypath..'" /b')
+--for myFolderNames in handle:lines() do
+--end
+--do handle:close() end
+io.read()
