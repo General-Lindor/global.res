@@ -10,7 +10,7 @@ set pathway=%~dp0
 set pathway="%pathway:~0,-4%MODS"
 
 set "psCommand="(new-object -COM 'Shell.Application')^
-.BrowseForFolder(0,'Please choose a folder.',0x00000203,'%pathway%').self.path""
+.BrowseForFolder(0,'Please choose a folder.',0,'%pathway%').self.path""
 
 for /f "usebackq delims=" %%I in (`powershell %psCommand%`) do set "folder=%%I"
 
