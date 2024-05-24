@@ -5,7 +5,7 @@ as well as increasing overview of global.res
 and simplify the modding process
 by introducing mod inheritance.
 
-"__BASE__" contains PFP locale.
+\_\_BASE\_\_ contains PFP locale.
 All other mods must inherit from another mod.
 Inherited mods have four files per language:
 
