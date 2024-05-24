@@ -46,3 +46,42 @@ end
 print(content:sub(1, 2) == string.char(0xFF, 0xFE))
 local thing = "thingi"
 print(thing:match("([^i]+)i([^i]+)"))
+
+
+-- split a string
+function string:split(delimiter)
+    local result = { }
+    local from  = 1
+    local delim_from, delim_to = string.find( self, delimiter, from  )
+    while delim_from do
+        table.insert( result, string.sub( self, from , delim_from-1 ) )
+        from  = delim_to + 1
+        delim_from, delim_to = string.find( self, delimiter, from  )
+    end
+    table.insert( result, string.sub( self, from  ) )
+    return result
+end
+
+function string:split(pattern)
+    local result = {}
+    local start = 1
+    local patternStart, patternEnd = self:find(pattern, start)
+    while ((patternStart ~= nil) and (patternEnd ~= nil)) do
+        if (patternStart > start) then
+            do table.insert(result, self:sub(start, patternStart - 1)) end
+        end
+        do start = patternEnd + 1 end
+        do patternStart, patternEnd = self:find(pattern, start) end
+    end
+    local last = #self
+    if (start <= last) then
+        do table.insert(result, self:sub(start, last)) end
+    end
+    do return result end
+end
+
+local mysplittablestring = "123ab45ab6abab7ab"
+local mysplittedstring = mysplittablestring:split("ab")
+for k, v in pairs(mysplittedstring) do
+    do print(k, v) end
+end

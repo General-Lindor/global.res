@@ -28,8 +28,30 @@ end
 -----------------------
 do cls(0) end
 
+local LeBom = string.char(0xFF, 0xFE)
+local linebreak = string.char(0x0D, 0x00, 0x0A, 0x00)
+local tab = string.char(0x09, 0x00)
+
 function sleep(s)
     do os.execute("timeout /t "..tostring(s).." /nobreak") end
+end
+
+function string:split(pattern)
+    local result = {}
+    local start = 1
+    local patternStart, patternEnd = self:find(pattern, start)
+    while ((patternStart ~= nil) and (patternEnd ~= nil)) do
+        if (patternStart > start) then
+            do table.insert(result, self:sub(start, patternStart - 1)) end
+        end
+        do start = patternEnd + 1 end
+        do patternStart, patternEnd = self:find(pattern, start) end
+    end
+    local last = #self
+    if (start <= last) then
+        do table.insert(result, self:sub(start, last)) end
+    end
+    do return result end
 end
 
 function fileExists(testFile)
@@ -362,10 +384,6 @@ end
 ---------------------------------------
 do print("Implementing Inheritance...") end
 
-local LeBom = string.char(0xFF, 0xFE)
-local linebreak = string.char(0x0D, 0x00, 0x0A, 0x00)
-local tab = string.char(0x09, 0x00)
-
 do
     local file = io.open(decodedDirectory.."\\inheritance.txt", "wb")
     do file:write(baseName) end
@@ -397,14 +415,22 @@ function getContents(tag)
             local contentsBase = {}
             local contentsMod = {}
             
-            for item in binaryBase:gmatch("([^"..linebreak.."]+)") do
-                local hash, text = item:match("([^"..tab.."]+)"..tab.."(.+)")
-                do contentsBase[hash] = text end
+            for index, item in pairs(binaryBase:split(linebreak)) do
+                local i, j = item:find(tab)
+                if ((i ~= nil) and (j ~= nil)) then
+                    local hash = item:sub(1, i - 1)
+                    local text = item:sub(j + 1, #item)
+                    do contentsBase[hash] = text end
+                end
             end
             
-            for item in binaryMod:gmatch("([^"..linebreak.."]+)") do
-                local hash, text = item:match("([^"..tab.."]+)"..tab.."(.+)")
-                do contentsMod[hash] = text end
+            for index, item in pairs(binaryMod:split(linebreak)) do
+                local i, j = item:find(tab)
+                if ((i ~= nil) and (j ~= nil)) then
+                    local hash = item:sub(1, i - 1)
+                    local text = item:sub(j + 1, #item)
+                    do contentsMod[hash] = text end
+                end
             end
             
             --result
@@ -424,137 +450,117 @@ function getContents(tag)
     end
 end
 
+function getSets(contentsBase, contentsMod)
+            
+    local smallChanges = {}
+    local changes = {}
+    local adds = {}
+    local removes = {}
+    
+    local smallChangesKeys = {}
+    local changesKeys = {}
+    local addsKeys = {}
+    
+    for k, v in pairs(contentsBase) do
+        if (v ~= nil) then
+            local aequivalency = contentsMod[k]
+            if (aequivalency == nil) then
+                do removes[#removes + 1] = k end
+            else
+                local matchinglvl = compareStrings(v, aequivalency)
+                if matchinglvl == 0 then
+                    do contentsMod[k] = nil end
+                elseif matchinglvl < 6 then
+                    do smallChanges[k] = aequivalency end
+                    do smallChangesKeys[#smallChangesKeys + 1] = k end
+                    do contentsMod[k] = nil end
+                else
+                    do changes[k] = aequivalency end
+                    do changesKeys[#changesKeys + 1] = k end
+                    do contentsMod[k] = nil end
+                end
+            end
+        end
+    end
+    
+    for k, v in pairs(contentsMod) do
+        if (v ~= nil) then
+            local aequivalency = contentsBase[k]
+            if (aequivalency == nil) then
+                do adds[k] = v end
+                do addsKeys[#addsKeys + 1] = k end
+            else
+                local matchinglvl = compareStrings(v, aequivalency)
+                if matchinglvl == 0 then
+                    do contentsBase[k] = nil end
+                elseif matchinglvl < 6 then
+                    do smallChanges[k] = v end
+                    do smallChangesKeys[#smallChangesKeys + 1] = k end
+                    do contentsBase[k] = nil end
+                else
+                    do changes[k] = v end
+                    do changesKeys[#changesKeys + 1] = k end
+                    do contentsBase[k] = nil end
+                end
+            end
+        end
+    end
+    
+    do table.sort(smallChangesKeys) end
+    do table.sort(changesKeys) end
+    do table.sort(addsKeys) end
+    do table.sort(removes) end
+    
+    do return smallChanges, changes, adds, removes, smallChangesKeys, changesKeys, addsKeys end
+end
+
 function implementInheritance(tag)
-    do io.write("    Attemptig to inherit language \""..tag.."\"...") end
+    do io.write("    Attempting to inherit language \""..tag.."\"...") end
     do io.flush() end
     
-    local fileBasePath = fullBasePath.."\\"..tag.."\\decoded.txt"
-    local fileModPath = decodedDirectory.."\\"..tag.."\\decoded.txt"
-    if fileExists(fileModPath) then
-        if fileExists(fileBasePath) then
-    
-            local fileBase = (io.open(fileBasePath, "rb"))
-            local fileMod = (io.open(fileModPath, "rb"))
-            
-            local contentsBase = {}
-            local contentsMod = {}
-            
-            for line in fileBase:lines() do
-                local hash, text = splitNew(line)
-                if (hash ~= false) then
-                    do contentsBase[hash] = text end
-                end
-            end
-            
-            for line in fileMod:lines() do
-                local hash, text = splitNew(line)
-                if (hash ~= false) then
-                    do contentsMod[hash] = text end
-                end
-            end
-            
-            local smallChanges = {}
-            local changes = {}
-            local adds = {}
-            local removes = {}
-            
-            local smallChangesKeys = {}
-            local changesKeys = {}
-            local addsKeys = {}
-            
-            for k, v in pairs(contentsBase) do
-                if (v ~= nil) then
-                    local aequivalency = contentsMod[k]
-                    if (aequivalency == nil) then
-                        do removes[#removes + 1] = k end
-                    else
-                        local matchinglvl = compareStrings(v, aequivalency)
-                        if matchinglvl == 0 then
-                            do contentsMod[k] = nil end
-                        elseif matchinglvl < 6 then
-                            do smallChanges[k] = aequivalency end
-                            do smallChangesKeys[#smallChangesKeys + 1] = k end
-                            do contentsMod[k] = nil end
-                        else
-                            do changes[k] = aequivalency end
-                            do changesKeys[#changesKeys + 1] = k end
-                            do contentsMod[k] = nil end
-                        end
-                    end
-                end
-            end
-            
-            for k, v in pairs(contentsMod) do
-                if (v ~= nil) then
-                    local aequivalency = contentsBase[k]
-                    if (aequivalency == nil) then
-                        do adds[k] = v end
-                        do addsKeys[#addsKeys + 1] = k end
-                    else
-                        local matchinglvl = compareStrings(v, aequivalency)
-                        if matchinglvl == 0 then
-                            do contentsBase[k] = nil end
-                        elseif matchinglvl < 6 then
-                            do smallChanges[k] = v end
-                            do smallChangesKeys[#smallChangesKeys + 1] = k end
-                            do contentsBase[k] = nil end
-                        else
-                            do changes[k] = v end
-                            do changesKeys[#changesKeys + 1] = k end
-                            do contentsBase[k] = nil end
-                        end
-                    end
-                end
-            end
-            
-            do table.sort(smallChangesKeys) end
-            do table.sort(changesKeys) end
-            do table.sort(addsKeys) end
-            do table.sort(removes) end
-            
-            local smallChangesFile = io.open(decodedDirectory.."\\"..tag.."\\smallChanges.txt", "wb")
-            for k, v in ipairs(smallChangesKeys) do
-                local s = v.."	"..(smallChanges[v]).."\n"
-                do smallChangesFile:write(s) end
-            end
-            do smallChangesFile:close() end
-            
-            local changesFile = io.open(decodedDirectory.."\\"..tag.."\\changes.txt", "wb")
-            for k, v in ipairs(changesKeys) do
-                local s = v.."	"..(changes[v]).."\n"
-                do changesFile:write(s) end
-            end
-            do changesFile:close() end
-            
-            local addsFile = io.open(decodedDirectory.."\\"..tag.."\\adds.txt", "wb")
-            for k, v in ipairs(addsKeys) do
-                local s = v.."	"..(adds[v]).."\n"
-                do addsFile:write(s) end
-            end
-            do addsFile:close() end
-            
-            local removesFile = io.open(decodedDirectory.."\\"..tag.."\\removes.txt", "wb")
-            for k, v in ipairs(removes) do
-                local s = v.."\n"
-                do removesFile:write(s) end
-            end
-            do removesFile:close() end
-            
-            do io.write(" Success!\n") end
-            do io.flush() end
-        else
-            do print() end
-            do print("CRITICAL ERROR: The Ancestor Mod you want to inherit from does not contain the language \""..tag.."\" while the Child Mod does!") end
-            do print("Erasing all files..") end
-            do os.execute("rmdir /s \""..decodedDirectory.."\"") end
-            do os.execute("rmdir /s \""..encodedDirectory.."\"") end
-            do return false end
-        end
-    else
-        do io.write(" The language does not exist for the Child Mod.\n") end
-        do io.flush() end
+    local contentsBase, contentsMod = getContents(tag)
+    if contentsBase == false then
+        do return false end
+    elseif ((contentsBase == nil) or (contentsMod == nil)) then
+        do return nil end
     end
-    do return true end
+    
+    local smallChanges, changes, adds, removes, smallChangesKeys, changesKeys, addsKeys = getSets(contentsBase, contentsMod)
+    
+    local smallChangesFile = io.open(decodedDirectory.."\\"..tag.."\\smallChanges.txt", "wb")
+    do smallChangesFile:write(LeBom) end
+    for k, v in ipairs(smallChangesKeys) do
+        local s = v..tab..(smallChanges[v])..linebreak
+        do smallChangesFile:write(s) end
+    end
+    do smallChangesFile:close() end
+    
+    local changesFile = io.open(decodedDirectory.."\\"..tag.."\\changes.txt", "wb")
+    do changesFile:write(LeBom) end
+    for k, v in ipairs(changesKeys) do
+        local s = v..tab..(changes[v])..linebreak
+        do changesFile:write(s) end
+    end
+    do changesFile:close() end
+    
+    local addsFile = io.open(decodedDirectory.."\\"..tag.."\\adds.txt", "wb")
+    do addsFile:write(LeBom) end
+    for k, v in ipairs(addsKeys) do
+        local s = v..tab..(adds[v])..linebreak
+        do addsFile:write(s) end
+    end
+    do addsFile:close() end
+    
+    local removesFile = io.open(decodedDirectory.."\\"..tag.."\\removes.txt", "wb")
+    do removesFile:write(LeBom) end
+    for k, v in ipairs(removes) do
+        local s = v..linebreak
+        do removesFile:write(s) end
+    end
+    do removesFile:close() end
+    
+    do io.write(" Success!\n") end
+    do io.flush() end
 end
 
 do
