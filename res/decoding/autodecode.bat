@@ -43,13 +43,14 @@ set SendKeys=CScript //nologo //E:JScript "%~F0"
 
 rem Start the other program in another window
 START "applicationDecoder" S2rw.v1.7.exe
-timeout /t 2 /nobreak
+timeout /t 5 /nobreak
 
 %SendKeys% "{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}"
 for /l %%x in (0, 1, %cnt%) do (
     %SendKeys% "{DOWN}"
 )
 %SendKeys% "{TAB}{ENTER}"
+timeout /t 10 /nobreak
 %SendKeys% "{TAB}{TAB}{TAB}{TAB}{TAB}{TAB}{ENTER}"
 
 goto :EOF

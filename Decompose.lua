@@ -1,6 +1,36 @@
+function cls(lvl)
+    do os.execute("cls") end
+    do print("Performing Setup...") end
+    if (lvl > 0) then
+        do print("Building Paths...") end
+    else
+        do return end
+    end
+    if (lvl > 1) then
+        do print("Copying Files...") end
+    else
+        do return end
+    end
+    if (lvl > 2) then
+        do print("Decoding Files...") end
+    else
+        do return end
+    end
+    if (lvl > 3) then
+        do print("Implementing Inheritance...") end
+    else
+        do return end
+    end
+end
+
 -----------------------
 -- PART 0: Functions --
 -----------------------
+do cls(0) end
+
+function sleep(s)
+    do os.execute("timeout /t "..tostring(s).." /nobreak") end
+end
 
 function fileExists(testFile)
     local test = io.popen("dir \""..testFile.."\" /b"):read("*a")
@@ -94,7 +124,7 @@ function compareStrings(string0, string1)
             if i == 0 then
                 if offset == maxPossibleOffset then
                     do result = result + offset end
-                    do print(string0, string1, result) end
+                    --do print(string0, string1, result) end
                     do return result end
                 else
                     do offset = offset + 1 end
@@ -108,45 +138,74 @@ function compareStrings(string0, string1)
             
         end
     end
-    do print(string0, string1, result) end
+    --do print(string0, string1, result) end
     do return result end
 end
 
-do compareStrings("Banana", "Banana") end
-do compareStrings("Banana", "Potato") end
-do compareStrings("Potato", "Banana") end
-do compareStrings("Jack Haber", "Jack Hober") end
-do compareStrings("Jack Haber", "Jack Hoaber") end
-do compareStrings("Jack Hober", "Jack Haber") end
-do compareStrings("Jack Hoaber", "Jack Haber") end
+--do compareStrings("Banana", "Banana") end
+--do compareStrings("Banana", "Potato") end
+--do compareStrings("Potato", "Banana") end
+--do compareStrings("Jack Haber", "Jack Hober") end
+--do compareStrings("Jack Haber", "Jack Hoaber") end
+--do compareStrings("Jack Hober", "Jack Haber") end
+--do compareStrings("Jack Hoaber", "Jack Haber") end
+--do io.read() end
 
 --------------------------------
 -- PART I: BUILDING THE PATHS --
 --------------------------------
+do cls(1) end
+
+--pathway
 
 do print("Building paths...") end
 local pathway = getFolderPath("cd")
 
-do print("Please select your mod folder:") end
-local modPath = getFolderPath("res\\chooseFolder.bat")
-local i = #modPath
-while (((modPath:sub(i, i)) ~= "\\") and (i > 0)) do
-    do i = i - 1 end
+--fullModPath
+--modPath
+--modName
+
+do print("Please wait for the PopUp and select your mod folder:") end
+local fullModPath
+local modPath
+local modName
+do
+    do fullModPath = getFolderPath("res\\chooseFolder.bat") end
+    local i = (#fullModPath)
+    while (((fullModPath:sub(i, i)) ~= "\\") and (i > 0)) do
+        do i = (i - 1) end
+    end
+    do modPath = fullModPath:sub(1, (i - 1)) end
+    do modName = fullModPath:sub((i + 1), (#fullModPath)) end
 end
-local modName = modPath:sub(i + 1, #modPath)
-do modPath = modPath:sub(1, i - 1) end
-local fullModPath = modPath.."\\"..modName
 
-do print("Please choose a mod to inherit from:") end
-local basePath = getFolderPath("res\\chooseMod.bat")
-do i = #basePath end
-while (((basePath:sub(i, i)) ~= "\\") and (i > 0)) do
-    do i = i - 1 end
+--fullBasePath
+--basePath
+--baseName
+
+do print("Please wait for the PopUp and choose a mod to inherit from:") end
+local fullBasePath
+local basePath
+local baseName
+do
+    do fullBasePath = getFolderPath("res\\chooseMod.bat") end
+    local i = (#fullBasePath)
+    while (((fullBasePath:sub(i, i)) ~= "\\") and (i > 0)) do
+        do i = (i - 1) end
+    end
+    do basePath = fullBasePath:sub(1, (i - 1)) end
+    do baseName = fullBasePath:sub((i + 1), (#fullBasePath)) end
 end
-local baseName = basePath:sub(i + 1, #basePath)
 
+--decodedDirectory
+--encodedDirectory
 
-local workingDirectory = pathway.."\\MODS\\"..modName
+local decodedDirectory = pathway.."\\DECODED\\"..modName
+local encodedDirectory = pathway.."\\ENCODED\\"..modName
+
+-----------
+-- check --
+-----------
 
 if (not (fileExists(fullModPath.."\\locale"))) then
     do error("The mod needs to have a locale directory but doesn't!") end
@@ -177,32 +236,43 @@ end
 ---------------------------------------------
 -- PART II: BUILDING THE WORKING DIRECTORY --
 ---------------------------------------------
+do cls(2) end
 
-do print("Copying Relevant Files...") end
-while (fileExists(workingDirectory)) do
+while (fileExists(decodedDirectory) or fileExists(encodedDirectory)) do
     local answer = nil
     while ((answer ~= "y") and (answer ~= "n")) do
         do print("Already exists. Do you want to overwrite? (y/n)") end
         do answer = io.read() end
     end
     if answer == "y" then
-        do os.execute("rmdir /s \""..workingDirectory.."\"") end
+        if (fileExists(decodedDirectory)) then
+            do os.execute("rmdir /s \""..decodedDirectory.."\"") end
+        end
+        if (fileExists(encodedDirectory)) then
+            do os.execute("rmdir /s \""..encodedDirectory.."\"") end
+        end
     elseif answer == "n" then
         do goto finish end
     else
         do error("WTF??") end
     end
 end
-do os.execute("timeout 1") end
-do os.execute("mkdir \""..workingDirectory.."\"") end
+
+do sleep(1) end
+do os.execute("mkdir \""..decodedDirectory.."\"") end
+do os.execute("mkdir \""..encodedDirectory.."\"") end
+
 function create(tag)
     local filePath = fullModPath.."\\locale\\"..tag.."\\global.res"
     if (fileExists(filePath)) then
-        local langPath = workingDirectory.."\\"..tag
-        do os.execute("mkdir \""..langPath.."\"") end
-        do copyFile(filePath, langPath.."\\global.res") end
+        local langPathDecoded = decodedDirectory.."\\"..tag
+        local langPathEncoded = encodedDirectory.."\\"..tag
+        do os.execute("mkdir \""..langPathDecoded.."\"") end
+        do os.execute("mkdir \""..langPathEncoded.."\"") end
+        do copyFile(filePath, langPathDecoded.."\\global.res") end
     end
 end
+
 do create("de_DE") end
 do create("en_UK") end
 do create("es_ES") end
@@ -215,62 +285,314 @@ do create("ru_RU") end
 -----------------------------------
 -- PART III: DECODING THE LOCALE --
 -----------------------------------
+do cls(3) end
 
 function decodeLanguage(tag, shorttag)
-    do os.execute("cls") end
-    do print("Attempting to decode language "..tag) end
-    do print("    PLEASE DO NOT INTERRUPT AND BE PATIENT!") end
-    do print("    DO NOT PRESS ANYTHING ON THE KEYBOARD!") end
-    do print("    DO NOT CLICK ANY MOUSE BUTTON!") end
-    local langPath = workingDirectory.."\\"..tag
-    if fileExists(langPath) then
-        do copyFile(pathway.."\\res\\decoding\\autodecode.bat", langPath.."\\autodecode.bat") end
-        do copyFile(pathway.."\\res\\decoding\\noS2", langPath.."\\noS2") end
-        do copyFile(pathway.."\\res\\decoding\\S2read.dll", langPath.."\\S2read.dll") end
-        do copyFile(pathway.."\\res\\decoding\\S2rw.v1.7.exe", langPath.."\\S2rw.v1.7.exe") end
+    local langPathDecoded = decodedDirectory.."\\"..tag
+    local langPathEncoded = encodedDirectory.."\\"..tag
+    if fileExists(langPathDecoded) then
+        do copyFile(pathway.."\\res\\decoding\\autodecode.bat", langPathDecoded.."\\autodecode.bat") end
+        do copyFile(pathway.."\\res\\decoding\\noS2", langPathDecoded.."\\noS2") end
+        do copyFile(pathway.."\\res\\decoding\\S2read.dll", langPathDecoded.."\\S2read.dll") end
+        do copyFile(pathway.."\\res\\decoding\\S2rw.v1.7.exe", langPathDecoded.."\\S2rw.v1.7.exe") end
         
-        local subhandle = io.popen("cd \""..langPath.."\" && autodecode.bat "..tag)
+        local subhandle = io.popen("cd \""..langPathDecoded.."\" && autodecode.bat "..tag)
         do subhandle:flush() end
         do print(subhandle:read("*a")) end
         do subhandle:close() end
         
-        if (fileExists(langPath.."\\decoded.txt")) then
-            do deleteFile(langPath.."\\decoded.txt") end
+        if (fileExists(langPathDecoded.."\\decoded.txt")) then
+            do deleteFile(langPathDecoded.."\\decoded.txt") end
         end
-        do os.rename(langPath.."\\global"..shorttag.."_texts.txt", langPath.."\\decoded.txt") end
+        do os.rename(langPathDecoded.."\\global"..shorttag.."_texts.txt", langPathDecoded.."\\decoded.txt") end
+        do os.rename(langPathDecoded.."\\global.res", langPathEncoded.."\\global.res") end
         
-        do deleteFile(langPath.."\\autodecode.bat") end
-        do deleteFile(langPath.."\\noS2") end
-        do deleteFile(langPath.."\\S2read.dll") end
-        do deleteFile(langPath.."\\S2rw.v1.7.exe") end
+        do deleteFile(langPathDecoded.."\\autodecode.bat") end
+        do deleteFile(langPathDecoded.."\\noS2") end
+        do deleteFile(langPathDecoded.."\\S2read.dll") end
+        do deleteFile(langPathDecoded.."\\S2rw.v1.7.exe") end
         
-        do print("Successfully decoded "..tag) end
-        do os.execute("timeout 2") end
+        do print("Successfully decoded language \""..tag.."\"") end
+        do sleep(1) end
+        do return true end
     else
-        do print("Language "..tag.." does not exist; could not decode") end
-        do os.execute("timeout 2") end
+        do print("Language \""..tag.."\" does not exist; could not decode") end
+        do sleep(1) end
+        do return false end
     end
 end
-do print("Attempting to decode the files next. DURING DECODING:") end
+
+do print("Attempting to decode the files next.") end
+do print("DURING DECODING:") end
 do print("    PLEASE DO NOT INTERRUPT AND BE PATIENT!") end
 do print("    DO NOT PRESS ANYTHING ON THE KEYBOARD!") end
 do print("    DO NOT CLICK ANY MOUSE BUTTON!") end
 do print("PLEASE CLOSE ALL OTHER APLLICATIONS BEFORE CONTINUING AND INPUT THE ENTER KEY INTO THE CONSOLE ONCE YOU'RE READY:") end
 do io.read() end
+do cls(3) end
 
-do decodeLanguage("de_DE", "De") end
-do decodeLanguage("en_UK", "En") end
-do decodeLanguage("es_ES", "Sp") end
-do decodeLanguage("fr_FR", "Fr") end
-do decodeLanguage("hu_HU", "Hu") end
-do decodeLanguage("it_IT", "It") end
-do decodeLanguage("pl_PL", "Pl") end
-do decodeLanguage("ru_RU", "Ru") end
+do
+    local messages = {}
+    function decodeAndMessage(tag, smallTag)
+        do print("    Attempting to decode language \""..tag.."\"...") end
+        local hasBeenSuccessful = decodeLanguage(tag, smallTag)
+        do cls(3) end
+        if (hasBeenSuccessful) then
+            do messages[#messages + 1] = "    Attempting to decode language \""..tag.."\"... Success!" end
+        else
+            do messages[#messages + 1] = "    Attempting to decode language \""..tag.."\"... Mod doesn't have the language." end
+        end
+        for k, v in pairs(messages) do
+            do print(v) end
+        end
+    end
 
---local handle = io.popen('dir "'..mypath..'" /b')
---for myFolderNames in handle:lines() do
---end
---do handle:close() end
+    do decodeAndMessage("de_DE", "De") end
+    do decodeAndMessage("en_UK", "En") end
+    do decodeAndMessage("es_ES", "Sp") end
+    do decodeAndMessage("fr_FR", "Fr") end
+    do decodeAndMessage("hu_HU", "Hu") end
+    do decodeAndMessage("it_IT", "It") end
+    do decodeAndMessage("pl_PL", "Pl") end
+    do decodeAndMessage("ru_RU", "Ru") end
+end
+
+---------------------------------------
+-- PART IV: Implementing Inheritance --
+---------------------------------------
+do print("Implementing Inheritance...") end
+
+local LeBom = string.char(0xFF, 0xFE)
+local linebreak = string.char(0x0D, 0x00, 0x0A, 0x00)
+local tab = string.char(0x09, 0x00)
+
+do
+    local file = io.open(decodedDirectory.."\\inheritance.txt", "wb")
+    do file:write(baseName) end
+    do file:close() end
+end
+
+function getContents(tag)
+    local fileBasePath = fullBasePath.."\\"..tag.."\\decoded.txt"
+    local fileModPath = decodedDirectory.."\\"..tag.."\\decoded.txt"
+    if fileExists(fileModPath) then
+        if fileExists(fileBasePath) then
+            
+            --get files
+            local fileBase = (io.open(fileBasePath, "rb"))
+            local fileMod = (io.open(fileModPath, "rb"))
+            
+            --get binary contents
+            local binaryBase = fileBase:read("*a")
+            local binaryMod = fileMod:read("*a")
+            
+            if (binaryBase:sub(1, 2) == LeBom) then
+                do binaryBase = binaryBase:sub(3, #binaryBase) end
+            end
+            if (binaryMod:sub(1, 2) == LeBom) then
+                do binaryMod = binaryMod:sub(3, #binaryMod) end
+            end
+            
+            --split contents to tables
+            local contentsBase = {}
+            local contentsMod = {}
+            
+            for item in binaryBase:gmatch("([^"..linebreak.."]+)") do
+                local hash, text = item:match("([^"..tab.."]+)"..tab.."(.+)")
+                do contentsBase[hash] = text end
+            end
+            
+            for item in binaryMod:gmatch("([^"..linebreak.."]+)") do
+                local hash, text = item:match("([^"..tab.."]+)"..tab.."(.+)")
+                do contentsMod[hash] = text end
+            end
+            
+            --result
+            do return contentsBase, contentsMod end
+        else
+            do print() end
+            do print("CRITICAL ERROR: The Ancestor Mod you want to inherit from does not contain the language \""..tag.."\" while the Child Mod does!") end
+            do print("Erasing all files..") end
+            do os.execute("rmdir /s \""..decodedDirectory.."\"") end
+            do os.execute("rmdir /s \""..encodedDirectory.."\"") end
+            do return false end
+        end
+    else
+        do io.write(" The language does not exist for the Child Mod.\n") end
+        do io.flush() end
+        do return end
+    end
+end
+
+function implementInheritance(tag)
+    do io.write("    Attemptig to inherit language \""..tag.."\"...") end
+    do io.flush() end
+    
+    local fileBasePath = fullBasePath.."\\"..tag.."\\decoded.txt"
+    local fileModPath = decodedDirectory.."\\"..tag.."\\decoded.txt"
+    if fileExists(fileModPath) then
+        if fileExists(fileBasePath) then
+    
+            local fileBase = (io.open(fileBasePath, "rb"))
+            local fileMod = (io.open(fileModPath, "rb"))
+            
+            local contentsBase = {}
+            local contentsMod = {}
+            
+            for line in fileBase:lines() do
+                local hash, text = splitNew(line)
+                if (hash ~= false) then
+                    do contentsBase[hash] = text end
+                end
+            end
+            
+            for line in fileMod:lines() do
+                local hash, text = splitNew(line)
+                if (hash ~= false) then
+                    do contentsMod[hash] = text end
+                end
+            end
+            
+            local smallChanges = {}
+            local changes = {}
+            local adds = {}
+            local removes = {}
+            
+            local smallChangesKeys = {}
+            local changesKeys = {}
+            local addsKeys = {}
+            
+            for k, v in pairs(contentsBase) do
+                if (v ~= nil) then
+                    local aequivalency = contentsMod[k]
+                    if (aequivalency == nil) then
+                        do removes[#removes + 1] = k end
+                    else
+                        local matchinglvl = compareStrings(v, aequivalency)
+                        if matchinglvl == 0 then
+                            do contentsMod[k] = nil end
+                        elseif matchinglvl < 6 then
+                            do smallChanges[k] = aequivalency end
+                            do smallChangesKeys[#smallChangesKeys + 1] = k end
+                            do contentsMod[k] = nil end
+                        else
+                            do changes[k] = aequivalency end
+                            do changesKeys[#changesKeys + 1] = k end
+                            do contentsMod[k] = nil end
+                        end
+                    end
+                end
+            end
+            
+            for k, v in pairs(contentsMod) do
+                if (v ~= nil) then
+                    local aequivalency = contentsBase[k]
+                    if (aequivalency == nil) then
+                        do adds[k] = v end
+                        do addsKeys[#addsKeys + 1] = k end
+                    else
+                        local matchinglvl = compareStrings(v, aequivalency)
+                        if matchinglvl == 0 then
+                            do contentsBase[k] = nil end
+                        elseif matchinglvl < 6 then
+                            do smallChanges[k] = v end
+                            do smallChangesKeys[#smallChangesKeys + 1] = k end
+                            do contentsBase[k] = nil end
+                        else
+                            do changes[k] = v end
+                            do changesKeys[#changesKeys + 1] = k end
+                            do contentsBase[k] = nil end
+                        end
+                    end
+                end
+            end
+            
+            do table.sort(smallChangesKeys) end
+            do table.sort(changesKeys) end
+            do table.sort(addsKeys) end
+            do table.sort(removes) end
+            
+            local smallChangesFile = io.open(decodedDirectory.."\\"..tag.."\\smallChanges.txt", "wb")
+            for k, v in ipairs(smallChangesKeys) do
+                local s = v.."	"..(smallChanges[v]).."\n"
+                do smallChangesFile:write(s) end
+            end
+            do smallChangesFile:close() end
+            
+            local changesFile = io.open(decodedDirectory.."\\"..tag.."\\changes.txt", "wb")
+            for k, v in ipairs(changesKeys) do
+                local s = v.."	"..(changes[v]).."\n"
+                do changesFile:write(s) end
+            end
+            do changesFile:close() end
+            
+            local addsFile = io.open(decodedDirectory.."\\"..tag.."\\adds.txt", "wb")
+            for k, v in ipairs(addsKeys) do
+                local s = v.."	"..(adds[v]).."\n"
+                do addsFile:write(s) end
+            end
+            do addsFile:close() end
+            
+            local removesFile = io.open(decodedDirectory.."\\"..tag.."\\removes.txt", "wb")
+            for k, v in ipairs(removes) do
+                local s = v.."\n"
+                do removesFile:write(s) end
+            end
+            do removesFile:close() end
+            
+            do io.write(" Success!\n") end
+            do io.flush() end
+        else
+            do print() end
+            do print("CRITICAL ERROR: The Ancestor Mod you want to inherit from does not contain the language \""..tag.."\" while the Child Mod does!") end
+            do print("Erasing all files..") end
+            do os.execute("rmdir /s \""..decodedDirectory.."\"") end
+            do os.execute("rmdir /s \""..encodedDirectory.."\"") end
+            do return false end
+        end
+    else
+        do io.write(" The language does not exist for the Child Mod.\n") end
+        do io.flush() end
+    end
+    do return true end
+end
+
+do
+    local hasBeenSuccessful
+    do hasBeenSuccessful = implementInheritance("de_DE") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("en_UK") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("es_ES") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("fr_FR") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("hu_HU") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("it_IT") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("pl_PL") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+    do hasBeenSuccessful = implementInheritance("ru_RU") end
+    if (hasBeenSuccessful == false) then
+        do goto finish end
+    end
+end
+
 ::finish::
 do print("Finish") end
 io.read()
