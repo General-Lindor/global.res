@@ -8,7 +8,7 @@ $form.StartPosition = 'CenterScreen'
 $label = New-Object System.Windows.Forms.Label
 $label.Location = New-Object System.Drawing.Point(10,20)
 $label.Size = New-Object System.Drawing.Size(500,25)
-$label.Text = 'Please Select a Mod to inherit from:'
+$label.Text = 'Please Select a Mod:'
 $form.Controls.Add($label)
 
 $listBox = New-Object System.Windows.Forms.ListBox

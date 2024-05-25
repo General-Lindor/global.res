@@ -17,3 +17,8 @@ Inherited mods have four files per language:
 New Mods can easily get added with Decompose.exe (and Reassemble.exe builds the global.res from the decoded files).
 
 WIP: First successful Decompose has been accomplished but the Reassembling process is yet to be implemented.
+
+
+Decompose: Add new mod, decode it & decompose it by implementing the mod inheritance
+Compose: ENCODE a decoded mod
+Reassemble: create decoded.txt for a mod
