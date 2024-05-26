@@ -1,5 +1,0 @@
-Rules:
--All Lines End With 0D 00 0A 00
--All Files Begin With FF FE
--Most characters are 2 Bytes (xx xx). Linebreaks are 4 Bytes (0D 00 0A 00)
--Tab Character: 09 00

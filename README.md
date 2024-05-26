@@ -5,7 +5,12 @@ as well as increasing overview of global.res
 and simplify the modding process
 by introducing mod inheritance.
 
-\_\_BASE\_\_ contains PFP locale.
+The point of this is to (manually) propagate spelling mistake fixes down the tree.
+To help with that, changes and small changes get distinguished and sorted automatically.
+
+The function to compare strings however is not yet perfect.
+
+\_\_BASE\_\_ contains PFP locale since i figured that would be the best candidate for it, but i guess the contents will start to differ over time.
 All other mods must inherit from another mod.
 Inherited mods have four files per language:
 
@@ -19,6 +24,5 @@ New Mods can easily get added with Decompose.exe (and Reassemble.exe builds the 
 WIP: First successful Decompose has been accomplished but the Reassembling process is yet to be implemented.
 
 
-Decompose: Add new mod, decode it & decompose it by implementing the mod inheritance
-Compose: ENCODE a decoded mod
-Reassemble: create decoded.txt for a mod
+Decompose.exe: Add new mod, DECODE it & decompose it by implementing the mod inheritance
+Compose.exe: ENCODE one of the mods to update the changes
