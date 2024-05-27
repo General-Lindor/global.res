@@ -238,6 +238,8 @@ local mainScript = function()
                 --get binary contents
                 local binaryBase = fileBase:read("*a")
                 local binaryMod = fileMod:read("*a")
+                do fileBase:close() end
+                do fileMod:close() end
                 
                 if (binaryBase:sub(1, 2) == LeBom) then
                     do binaryBase = binaryBase:sub(3, #binaryBase) end

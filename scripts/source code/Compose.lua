@@ -18,7 +18,7 @@ local mainScript = function()
 
     local pathway = getFolderPath("cd")
 
-    do io.write("    Please wait for the PopUp and choose a mod to inherit from: ") end
+    do io.write("    Please wait for the PopUp and choose a mod to compose: ") end
     do io.flush() end
     local modName
     do

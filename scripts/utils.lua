@@ -12,6 +12,7 @@ utilsHaveBeenLoaded = true
 LeBom = string.char(0xFF, 0xFE)
 linebreak = string.char(0x0D, 0x00, 0x0A, 0x00)
 tab = string.char(0x09, 0x00)
+whitechar = string.char(0x00)
 
 --Binary representation of string
 function string:toHex()

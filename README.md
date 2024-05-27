@@ -23,6 +23,14 @@ New Mods can easily get added with Decompose.exe (and Reassemble.exe builds the 
 
 WIP: First successful Decompose has been accomplished but the Reassembling process is yet to be implemented.
 
-
-Decompose.exe: Add new mod, DECODE it & decompose it by implementing the mod inheritance
-Compose.exe: ENCODE one of the mods to update the changes
+- Analyze.exe:
+    Find hashes which are present for some but not all languages.
+- Compose.exe:
+    ENCODE one of the mods to update the changes.<br>
+- Decompose.exe:
+    Add new mod, DECODE it & decompose it by implementing the mod inheritance.<br>
+    Needs to be done only once per mod ideally.
+- DecomposeWithHashPrint.exe:
+    Like Decompose.exe, but prints out the hashes during the inheritance phase.<br>
+    This is good to calm you down like "don't worry, stuff is happening" if it takes too long.
+    This phase can sometimes be slow and take like ~20 min. if your mod changes very large strings.
