@@ -39,70 +39,107 @@ function string:split(pattern)
     do return result end
 end
 
---returns the count of difference letters between two strings as an integer value
-function string:compare(otherString)
-    local result = 0
+--https://en.wikipedia.org/wiki/Longest_common_substring
+--I did some improvements; should be O(n+m) now!
+--And don't even need complicated stuff like suffix Tree!
+function longestCommonSubstring(stringA, stringB)
+    local lengthA = stringA:len()
+    local lengthB = stringB:len()
     
-    local index0 = 1
-    local index1 = 1
+    local L = {}
     
-    local length0 = self:len()
-    local length1 = otherString:len()
+    local LCSlength = 0
+    local indexAEnd = 1
+    local indexBEnd = 1
     
-    while ((index0 <= length0) and (index1 <= length1)) do
-        
-        local maxPossibleOffset = (length0 + length1) - (index0 + index1)
-        local offset = 0
-        local i = 0
-        local j = 0
-        
-        local newIndex0
-        local newIndex1
-        
-        while true do
-            
-            do newIndex0 = index0 + i end
-            do newIndex1 = index1 + j end
-            if ((newIndex0 <= length0) and (newIndex1 <= length1)) then
-                if self:sub(newIndex0, newIndex0) == otherString:sub(newIndex1, newIndex1) then
-                    do index0 = newIndex0 + 1 end
-                    do index1 = newIndex1 + 1 end
-                    do result = result + offset end
-                    do break end
-                end
+    local get
+    local store
+    
+    do
+        get = function(i, j)
+            local possibleResult = L[i]
+            if (possibleResult == nil) then
+                do return 0 end
             end
-            
-            if i ~= j then
-                do newIndex0 = index0 + j end
-                do newIndex1 = index1 + i end
-                if ((newIndex0 <= length0) and (newIndex1 <= length1)) then
-                    if self:sub(newIndex0, newIndex0) == otherString:sub(newIndex1, newIndex1) then
-                        do index0 = newIndex0 + 1 end
-                        do index1 = newIndex1 + 1 end
-                        do result = result + offset end
-                        do break end
-                    end
-                end
+            do possibleResult = possibleResult[j] end
+            if (possibleResult == nil) then
+                do return 0 end
             end
-            
-            if i == 0 then
-                if offset == maxPossibleOffset then
-                    do result = result + offset end
-                    --do print(self, otherString, result) end
-                    do return result end
-                else
-                    do offset = offset + 1 end
-                    do i = offset // 2 end
-                    do j = offset - i end
-                end
-            else
-                do i = i - 1 end
-                do j = j + 1 end
-            end
-            
+            do return possibleResult end
         end
     end
-    --do print(self, otherString, result) end
+    
+    do
+        store = function(i, j)
+            local value = get((i - 1), (j - 1)) + 1
+            if ((L[i]) == nil) then
+                local t = {}
+                do t[j] = value end
+                do L[i] = t end
+            else
+                do (L[i])[j] = value end
+            end
+            if (value > LCSlength) then
+                do LCSlength = value end
+                do indexAEnd = j end
+                do indexBEnd = i end
+            end
+        end
+    end
+    
+    local lettersA = {}
+    
+    for indexA = 1, lengthA, 1 do
+        local letter = stringA:sub(indexA, (indexA))
+        local t = lettersA[letter]
+        if (t == nil) then
+            do lettersA[letter] = {indexA} end
+        else
+            do table.insert(t, indexA) end
+        end
+    end
+    
+    for indexB = 1, lengthB, 1 do
+        do L[indexB - 2] = nil end
+        local letter = stringB:sub(indexB, (indexB))
+        local t = lettersA[letter]
+        if (t ~= nil) then
+            for key, indexA in ipairs(t) do
+                do store(indexB, indexA) end
+            end
+        end
+    end
+    
+    do return indexAEnd, indexBEnd, LCSlength end
+end
+
+--returns the count of difference letters between two strings as an integer value
+function string:compare(otherString)
+    
+    if self == otherString then
+        do return 0 end
+    end
+
+    local sizeSelf = self:len()
+    local sizeOtherString = otherString:len()
+    
+    local indexSelfEnd, indexOtherStringEnd, lengthSubstring = longestCommonSubstring(self, otherString)
+    if (lengthSubstring == 0) then
+        local result = sizeSelf + sizeOtherString
+        do return result end
+    end
+    local indexSelfStart = ((indexSelfEnd - lengthSubstring) + 1)
+    local indexOtherStringStart = ((indexOtherStringEnd - lengthSubstring) + 1)
+    
+    local selfLeft = self:sub(1, (indexSelfStart - 1))
+    local otherStringLeft = otherString:sub(1, (indexOtherStringStart - 1))
+    
+    local selfRight = self:sub((indexSelfEnd + 1), sizeSelf)
+    local otherStringRight = otherString:sub((indexOtherStringEnd + 1), sizeOtherString)
+    
+    local resultLeft = (selfLeft:compare(otherStringLeft))
+    local resultRight = (selfRight:compare(otherStringRight))
+    local result = resultLeft + resultRight
     do return result end
 end
 
