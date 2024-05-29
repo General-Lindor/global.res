@@ -40,83 +40,17 @@ function string:split(pattern)
     do return result end
 end
 
---https://en.wikipedia.org/wiki/Longest_common_substring
---I did some improvements; should be O(n+m) now!
---And don't even need complicated stuff like suffix Tree!
-function longestCommonSubstring(stringA, stringB)
-    local lengthA = stringA:len()
-    local lengthB = stringB:len()
-    
-    local L = {}
-    
-    local LCSlength = 0
-    local indexAEnd = 1
-    local indexBEnd = 1
-    
-    local get
-    local store
-    
-    do
-        get = function(i, j)
-            local possibleResult = L[i]
-            if (possibleResult == nil) then
-                do return 0 end
-            end
-            do possibleResult = possibleResult[j] end
-            if (possibleResult == nil) then
-                do return 0 end
-            end
-            do return possibleResult end
-        end
-    end
-    
-    do
-        store = function(i, j)
-            local value = get((i - 1), (j - 1)) + 1
-            if ((L[i]) == nil) then
-                local t = {}
-                do t[j] = value end
-                do L[i] = t end
-            else
-                do (L[i])[j] = value end
-            end
-            if (value > LCSlength) then
-                do LCSlength = value end
-                do indexAEnd = j end
-                do indexBEnd = i end
-            end
-        end
-    end
-    
-    local lettersA = {}
-    
-    for indexA = 1, lengthA, 1 do
-        local letter = stringA:sub(indexA, (indexA))
-        local t = lettersA[letter]
-        if (t == nil) then
-            do lettersA[letter] = {indexA} end
-        else
-            do table.insert(t, indexA) end
-        end
-    end
-    
-    for indexB = 1, lengthB, 1 do
-        do L[indexB - 2] = nil end
-        local letter = stringB:sub(indexB, (indexB))
-        local t = lettersA[letter]
-        if (t ~= nil) then
-            for key, indexA in ipairs(t) do
-                do store(indexB, indexA) end
-            end
-        end
-    end
-    
-    do return indexAEnd, indexBEnd, LCSlength end
-end
-
---returns the count of difference letters between two strings as an integer value
+--returns the levenshtein distance between two strings
+--
+--takes in Best Case m [when m == n] and in Worst Case ((m^2 + 2m - 1) / 4) [when n == (1 + m) / 2] steps,
+--where m is the size of the larger and n the size of the smaller string.
+--
+--unfortunately, worst case is also average case
+--because, if you sum n from n = 1 to m, you get n = m * (m + 1) / 2
+--which, averaged over the count of possible n's which is m, gets us to an average smaller string size of n = (m + 1) / 2
 function string:compare(otherString)
     
+    --do this because expect many equal strings to be compared; but can be removed
     if self == otherString then
         do return 0 end
     end
@@ -124,23 +58,42 @@ function string:compare(otherString)
     local sizeSelf = self:len()
     local sizeOtherString = otherString:len()
     
-    local indexSelfEnd, indexOtherStringEnd, lengthSubstring = longestCommonSubstring(self, otherString)
-    if (lengthSubstring == 0) then
-        local result = sizeSelf + sizeOtherString
-        do return result end
+    local larger
+    local smaller
+    
+    local sizeLarger
+    local sizeSmaller
+    
+    if (sizeSelf > sizeOtherString) then
+        do larger = self end
+        do smaller = otherString end
+        do sizeLarger = sizeSelf end
+        do sizeSmaller = sizeOtherString end
+    else
+        do larger = otherString end
+        do smaller = self end
+        do sizeLarger = sizeOtherString end
+        do sizeSmaller = sizeSelf end
     end
-    local indexSelfStart = ((indexSelfEnd - lengthSubstring) + 1)
-    local indexOtherStringStart = ((indexOtherStringEnd - lengthSubstring) + 1)
+    local diff = (sizeLarger - sizeSmaller)
     
-    local selfLeft = self:sub(1, (indexSelfStart - 1))
-    local otherStringLeft = otherString:sub(1, (indexOtherStringStart - 1))
+    local result = sizeLarger
     
-    local selfRight = self:sub((indexSelfEnd + 1), sizeSelf)
-    local otherStringRight = otherString:sub((indexOtherStringEnd + 1), sizeOtherString)
+    local letters = {}
+    for i = 1, sizeLarger, 1 do
+        do letters[i] = larger:sub(i, i) end
+    end
     
-    local resultLeft = (selfLeft:compare(otherStringLeft))
-    local resultRight = (selfRight:compare(otherStringRight))
-    local result = resultLeft + resultRight
+    for j = 1, sizeSmaller, 1 do
+        local currentLetter = smaller:sub(j, j)
+        for i = j, (j + diff), 1 do
+            if ((letters[i]) == currentLetter) then
+                do result = result - 1 end
+                do break end
+            end
+        end
+    end
+    
     do return result end
 end
 

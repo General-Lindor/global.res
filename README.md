@@ -8,7 +8,7 @@ by introducing mod inheritance.
 The point of this is to (manually) propagate spelling mistake fixes down the tree.
 To help with that, changes and small changes get distinguished and sorted automatically.
 
-The function to compare strings however is not yet perfect.
+It's using the Levenshtein Distance to distinguish between changes and small changes.
 
 \_\_BASE\_\_ contains PFP locale since i figured that would be the best candidate for it, but i guess the contents will start to differ over time.
 All other mods must inherit from another mod.
@@ -30,7 +30,3 @@ WIP: First successful Decompose has been accomplished but the Reassembling proce
 - Decompose.exe:
     Add new mod, DECODE it & decompose it by implementing the mod inheritance.<br>
     Needs to be done only once per mod ideally.
-- DecomposeWithHashPrint.exe:
-    Like Decompose.exe, but prints out the hashes during the inheritance phase.<br>
-    This is good to calm you down like "don't worry, stuff is happening" if it takes too long.
-    This phase can sometimes be slow and take like ~20 min. if your mod changes very large strings.
