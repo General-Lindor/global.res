@@ -67,16 +67,22 @@ local mainScript = function()
                 
                 do os.execute(mergedCommand) end
                 
+                -- make sure the directory exists
+                local encodedLangDirectory = encodedDirectory.."\\"..tag
+                if (not fileExists(encodedLangDirectory)) then
+                    do mkdir(encodedLangDirectory) end
+                end
+                
                 -- delete old global.res...
-                local pathToOldGlobalRes = encodedDirectory.."\\"..tag.."\\global.res"
-                if (fileExists(pathToOldGlobalRes)) then
-                    do deleteFile(pathToOldGlobalRes) end
+                local pathToGlobalRes = encodedLangDirectory.."\\global.res"
+                if (fileExists(pathToGlobalRes)) then
+                    do deleteFile(pathToGlobalRes) end
                 end
                 
                 -- ...and replace with new one!
                 local pathToNewGlobalRes = toolsDirectory.."\\global.res_"..shorttag.."_new"
                 if (fileExists(pathToNewGlobalRes)) then
-                    do os.rename(pathToNewGlobalRes, pathToOldGlobalRes) end
+                    do os.rename(pathToNewGlobalRes, pathToGlobalRes) end
                 else
                     do error("ERROR: Could not find the newly encoded global.res! Language: \""..tag.."\"") end
                 end
