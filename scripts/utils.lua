@@ -41,59 +41,57 @@ function string:split(pattern)
 end
 
 --returns the levenshtein distance between two strings
---
---takes in Best Case m [when m == n] and in Worst Case ((m^2 + 2m - 1) / 4) [when n == (1 + m) / 2] steps,
---where m is the size of the larger and n the size of the smaller string.
---
---unfortunately, worst case is also average case
---because, if you sum n from n = 1 to m, you get n = m * (m + 1) / 2
---which, averaged over the count of possible n's which is m, gets us to an average smaller string size of n = (m + 1) / 2
 function string:compare(otherString)
-    
-    --do this because expect many equal strings to be compared; but can be removed
-    if self == otherString then
-        do return 0 end
-    end
 
-    local sizeSelf = self:len()
-    local sizeOtherString = otherString:len()
+    local L = {}
     
-    local larger
-    local smaller
+    local get
+    local store
     
-    local sizeLarger
-    local sizeSmaller
-    
-    if (sizeSelf > sizeOtherString) then
-        do larger = self end
-        do smaller = otherString end
-        do sizeLarger = sizeSelf end
-        do sizeSmaller = sizeOtherString end
-    else
-        do larger = otherString end
-        do smaller = self end
-        do sizeLarger = sizeOtherString end
-        do sizeSmaller = sizeSelf end
-    end
-    local diff = (sizeLarger - sizeSmaller)
-    
-    local result = sizeLarger
-    
-    local letters = {}
-    for i = 1, sizeLarger, 1 do
-        do letters[i] = larger:sub(i, i) end
-    end
-    
-    for j = 1, sizeSmaller, 1 do
-        local currentLetter = smaller:sub(j, j)
-        for i = j, (j + diff), 1 do
-            if ((letters[i]) == currentLetter) then
-                do result = result - 1 end
-                do break end
+    do
+        store = function(i, j, value)
+            local t = L[i]
+            if (t ~= nil) then
+                do t[j] = value end
+            else
+                do L[i] = {value} end
             end
         end
     end
     
+    do
+        get = function(i, j)
+            if (i == 0) then
+                do return j end
+            elseif (j == 0) then
+                do return i end
+            end
+            
+            local value = L[i]
+            if (value ~= nil) then
+                do value = value[j] end
+                if (value ~= nil) then
+                    do return value end
+                end
+            end
+            
+            local first = get(i - 1, j - 1)
+            if self:sub(i, i) == self:sub(j, j) then
+                do value = first end
+            else
+                local second = get(i, j - 1)
+                local third = get(i - 1, j)
+                do value = ((math.min(first, math.min(second, third))) + 1) end
+            end
+            do store(i, j, value) end
+            do return value end
+        end
+    end
+    
+    local sizeSelf = self:len()
+    local sizeOtherString = otherString:len()
+    local result = get(sizeSelf, sizeOtherString)
+    do L = nil end
     do return result end
 end
 
