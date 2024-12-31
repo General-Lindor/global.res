@@ -1,1 +1,1 @@
-S2 EE 3.2 _CORE_ Required
+S2EE 3.2a patch
